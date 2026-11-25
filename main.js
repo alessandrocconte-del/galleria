@@ -45,7 +45,7 @@ camera.position.set(0, 1.6, 3);
 let photoBitmap, photoW = 0, photoH = 0;
 async function loadPhoto(i) {
   let bmp = await createImageBitmap(photoFiles[i], { imageOrientation: 'flipY' });
-  const s = Math.min(1, 8192 / Math.max(bmp.width, bmp.height));
+  const s = Math.min(1, 4096 / Math.max(bmp.width, bmp.height));
   if (s < 1) {
     const r = await createImageBitmap(bmp, { resizeWidth: Math.round(bmp.width * s), resizeHeight: Math.round(bmp.height * s), resizeQuality: 'high' });
     bmp.close();
