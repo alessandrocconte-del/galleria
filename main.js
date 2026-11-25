@@ -86,17 +86,21 @@ let photoDrawn = false;
 const photoPos = { x: 0, y: 1.6, z: -6 };
 
 const prevPressed = {};
+
 function changePhoto(d) {
   if (photoFiles.length < 2) return;
   currentIndex = (currentIndex + d + photoFiles.length) % photoFiles.length;
-  loadPhoto(currentIndex);
+  log('foto ' + (currentIndex + 1) + '/' + photoFiles.length);
+  loadPhoto(currentIndex).catch(e => log('ERRORE foto: ' + e));
 }
 
 function animate(time, frame) {
   if (renderer.xr.isPresenting && photoBitmap && photoBitmap !== builtFor && !building) {
     building = true;
     builtFor = photoBitmap;
-    buildLayer().then(() => { building = false; });
+    buildLayer()
+      .catch(e => log('ERRORE layer: ' + e))
+      .finally(() => { building = false; });
   }
 
   if (photoLayer && photoBitmap && frame && !photoDrawn) {
