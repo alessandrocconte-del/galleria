@@ -67,7 +67,7 @@ async function loadPhoto(i) {
     fisheyeMat.uniforms.aspect.value = photoW / photoH;
   }
   fisheyeSphere.visible = photoFisheye;
-  log(photoFiles[i].name + ': ' + photoW + 'x' + photoH);
+  log(photoFiles[i].name + ': ' + photoW + 'x' + photoH + (photoFisheye ? ' (FISHEYE)' : ''));
 }
 
 
