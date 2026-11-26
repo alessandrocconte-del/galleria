@@ -43,6 +43,7 @@ camera.position.set(0, 1.6, 3);
 
 
 let photoBitmap, photoW = 0, photoH = 0;
+let photoFisheye = false;
 async function loadPhoto(i) {
   let bmp = await createImageBitmap(photoFiles[i], { imageOrientation: 'flipY' });
   const s = Math.min(1, 8192 / Math.max(bmp.width, bmp.height));
@@ -56,6 +57,16 @@ async function loadPhoto(i) {
   photoW = bmp.width;
   photoH = bmp.height;
   if (old) old.close();
+  photoFisheye = /_FE\.[a-z]+$/i.test(photoFiles[i].name);
+  if (photoFisheye) {
+    const tex = new THREE.Texture(bmp);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    if (fisheyeMat.uniforms.map.value) fisheyeMat.uniforms.map.value.dispose();
+    fisheyeMat.uniforms.map.value = tex;
+    fisheyeMat.uniforms.aspect.value = photoW / photoH;
+  }
+  fisheyeSphere.visible = photoFisheye;
   log(photoFiles[i].name + ': ' + photoW + 'x' + photoH);
 }
 
@@ -135,7 +146,7 @@ scene.add(fisheyeSphere);
 
 
 function animate(time, frame) {
-  if (renderer.xr.isPresenting && photoBitmap && photoBitmap !== builtFor && !building) {
+  if (renderer.xr.isPresenting && photoBitmap && !photoFisheye && photoBitmap !== builtFor && !building) {
     building = true;
     builtFor = photoBitmap;
     buildLayer()
