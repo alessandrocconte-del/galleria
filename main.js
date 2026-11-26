@@ -78,7 +78,7 @@ async function loadPhoto(i) {
     fisheyeMat.uniforms.map.value = tex;
     fisheyeMat.uniforms.aspect.value = photoW / photoH;
   }
-  fisheyeSphere.visible = photoFisheye;
+  fisheyeSphere.visible = false;
   log(photoFiles[i].name + ': ' + photoW + 'x' + photoH + (photoFisheye ? ' (FISHEYE)' : ''));
 }
 
@@ -156,12 +156,35 @@ scene.add(fisheyeSphere);
 
 
 
+async function buildEquirectLayer() {
+  const session = renderer.xr.getSession();
+  const glBinding = renderer.xr.getBinding();
+  const refSpace = await session.requestReferenceSpace('local-floor');
+  const old = photoLayer;
+  const deg = Math.PI / 180;
+  photoLayer = glBinding.createEquirectLayer({
+    space: refSpace,
+    viewPixelWidth: 8192, viewPixelHeight: 4570,
+    isStatic: true, layout: 'mono',
+    radius: 0,
+    centralHorizontalAngle: 190 * deg,
+    upperVerticalAngle: 53 * deg,
+    lowerVerticalAngle: -53 * deg,
+    transform: new XRRigidTransform({ x: 0, y: 1.6, z: 0 })
+  });
+  const others = Array.from(session.renderState.layers).filter(l => l !== old);
+  session.updateRenderState({ layers: [photoLayer, ...others] });
+  if (old) old.destroy();
+  photoDrawn = false;
+}
+
+
 
 function animate(time, frame) {
-  if (renderer.xr.isPresenting && photoBitmap && !photoFisheye && photoBitmap !== builtFor && !building) {
+  if (renderer.xr.isPresenting && photoBitmap && photoBitmap !== builtFor && !building) {
     building = true;
     builtFor = photoBitmap;
-    buildLayer()
+    (photoFisheye ? buildEquirectLayer() : buildLayer())
       .catch(e => log('ERRORE layer: ' + e))
       .finally(() => { building = false; });
   }
