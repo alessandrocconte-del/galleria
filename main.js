@@ -45,7 +45,7 @@ camera.position.set(0, 1.6, 3);
 let photoBitmap, photoW = 0, photoH = 0;
 async function loadPhoto(i) {
   let bmp = await createImageBitmap(photoFiles[i], { imageOrientation: 'flipY' });
-  const s = Math.min(1, 4096 / Math.max(bmp.width, bmp.height));
+  const s = Math.min(1, 8192 / Math.max(bmp.width, bmp.height));
   if (s < 1) {
     const r = await createImageBitmap(bmp, { resizeWidth: Math.round(bmp.width * s), resizeHeight: Math.round(bmp.height * s), resizeQuality: 'high' });
     bmp.close();
@@ -93,6 +93,46 @@ function changePhoto(d) {
   log('foto ' + (currentIndex + 1) + '/' + photoFiles.length);
   loadPhoto(currentIndex).catch(e => log('ERRORE foto: ' + e));
 }
+
+
+const fisheyeMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    map: { value: null },
+    thetaMax: { value: 95 * Math.PI / 180 },
+    aspect: { value: 1.5 }
+  },
+  vertexShader: `
+    varying vec3 vDir;
+    void main() {
+      vDir = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: `
+    uniform sampler2D map;
+    uniform float thetaMax;
+    uniform float aspect;
+    varying vec3 vDir;
+    void main() {
+      vec3 d = normalize(vDir);
+      float theta = acos(clamp(-d.z, -1.0, 1.0));
+      float l = length(d.xy);
+      vec2 dir = l > 1e-6 ? d.xy / l : vec2(0.0);
+      float halfDiag = 0.5 * sqrt(aspect * aspect + 1.0);
+      vec2 p = dir * (theta / thetaMax) * halfDiag;
+      vec2 uv = vec2(0.5 + p.x / aspect, 0.5 + p.y);
+      if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard;
+      gl_FragColor = vec4(texture2D(map, uv).rgb, 1.0);
+      #include <colorspace_fragment>
+    }`
+});
+const fisheyeSphere = new THREE.Mesh(new THREE.SphereGeometry(10, 64, 64), fisheyeMat);
+fisheyeSphere.position.set(0, 1.6, 0);
+fisheyeSphere.visible = false;
+scene.add(fisheyeSphere);
+
+
+
 
 function animate(time, frame) {
   if (renderer.xr.isPresenting && photoBitmap && photoBitmap !== builtFor && !building) {
