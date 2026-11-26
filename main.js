@@ -6,7 +6,7 @@ const logBox = document.createElement('pre');
 logBox.style.cssText = 'position:fixed;top:0;left:0;color:#0f0;font-size:14px;z-index:10;margin:0';
 document.body.appendChild(logBox);
 function log(msg) { logBox.textContent += msg + '\n'; };
-log('main.js caricato');
+log('main.js caricato - versione 5');
 
 let photoFiles = [];
 let currentIndex = 0;
