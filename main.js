@@ -197,6 +197,7 @@ function animate(time, frame) {
       gl.bindTexture(gl.TEXTURE_2D, sub.colorTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, photoBitmap);
+      log('texture ' + sub.colorTextureWidth + 'x' + sub.colorTextureHeight + ' errore GL ' + gl.getError());
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       log('foto disegnata');
     } catch (e) { log('ERRORE disegno: ' + e); }
