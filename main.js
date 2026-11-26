@@ -13,7 +13,7 @@ let currentIndex = 0;
 
 const picker = document.createElement('input');
 picker.type = 'file';
-picker.accept = 'image/*';
+picker.accept = '.jpg,.jpeg,.png';
 picker.multiple = true;
 picker.style.cssText = 'position:fixed;top:60px;left:0;z-index:10;color:#fff';
 document.body.appendChild(picker);
