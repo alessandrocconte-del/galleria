@@ -167,9 +167,9 @@ async function buildEquirectLayer() {
     viewPixelWidth: 8192, viewPixelHeight: 4570,
     isStatic: true, layout: 'mono',
     radius: 0,
-    centralHorizontalAngle: 190 * deg,
-    upperVerticalAngle: 53 * deg,
-    lowerVerticalAngle: -53 * deg,
+    centralHorizontalAngle: 2 * Math.PI,
+    upperVerticalAngle: Math.PI / 2,
+    lowerVerticalAngle: -Math.PI / 2,
     transform: new XRRigidTransform({ x: 0, y: 1.6, z: 0 })
   });
   const others = Array.from(session.renderState.layers).filter(l => l !== old);
