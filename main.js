@@ -19,10 +19,22 @@ picker.style.cssText = 'position:fixed;top:60px;left:0;z-index:10;color:#fff';
 document.body.appendChild(picker);
 picker.addEventListener('change', () => {
   photoFiles = Array.from(picker.files);
+  photoFlags = photoFiles.map(() => fishBox.checked);
   currentIndex = 0;
   log('foto scelte: ' + photoFiles.length);
   loadPhoto(0);
 });
+
+const fishBox = document.createElement('input');
+fishBox.type = 'checkbox';
+fishBox.style.cssText = 'position:fixed;top:60px;right:60px;z-index:10;transform:scale(2.5)';
+document.body.appendChild(fishBox);
+const fishLabel = document.createElement('span');
+fishLabel.textContent = 'fisheye';
+fishLabel.style.cssText = 'position:fixed;top:60px;right:0;z-index:10;color:#fff;font-size:18px';
+document.body.appendChild(fishLabel);
+let photoFlags = [];
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -57,7 +69,7 @@ async function loadPhoto(i) {
   photoW = bmp.width;
   photoH = bmp.height;
   if (old) old.close();
-  photoFisheye = /_FE\.[a-z]+$/i.test(photoFiles[i].name);
+  photoFisheye = photoFlags[i];
   if (photoFisheye) {
     const tex = new THREE.Texture(bmp);
     tex.colorSpace = THREE.SRGBColorSpace;
