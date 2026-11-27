@@ -6,7 +6,7 @@ const logBox = document.createElement('pre');
 logBox.style.cssText = 'position:fixed;top:0;left:0;color:#0f0;font-size:14px;z-index:10;margin:0';
 document.body.appendChild(logBox);
 function log(msg) { logBox.textContent += msg + '\n'; };
-log('main.js caricato - versione 8');
+log('main.js caricato - versione 9');
 
 let photoFiles = [];
 let currentIndex = 0;
@@ -177,6 +177,72 @@ async function buildEquirectLayer() {
   if (old) old.destroy();
   photoDrawn = false;
 }
+
+
+
+
+function fisheyeToEquirect(bmp, W, H, azSpan, elUp, elLow) {
+  const canvas = new OffscreenCanvas(W, H);
+  const g = canvas.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
+  const compile = (type, src) => {
+    const s = g.createShader(type);
+    g.shaderSource(s, src);
+    g.compileShader(s);
+    if (!g.getShaderParameter(s, g.COMPILE_STATUS)) throw new Error(g.getShaderInfoLog(s));
+    return s;
+  };
+  const prog = g.createProgram();
+  g.attachShader(prog, compile(g.VERTEX_SHADER, `#version 300 es
+    in vec2 p;
+    out vec2 uv;
+    void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`));
+  g.attachShader(prog, compile(g.FRAGMENT_SHADER, `#version 300 es
+    precision highp float;
+    uniform sampler2D map;
+    uniform float thetaMax, aspect, azSpan, elUp, elLow;
+    in vec2 uv;
+    out vec4 outColor;
+    void main() {
+      float a = (uv.x - 0.5) * azSpan;
+      float e = mix(elLow, elUp, uv.y);
+      vec3 d = vec3(sin(a) * cos(e), sin(e), -cos(a) * cos(e));
+      float theta = acos(clamp(-d.z, -1.0, 1.0));
+      float l = length(d.xy);
+      vec2 dir = l > 1e-6 ? d.xy / l : vec2(0.0);
+      float halfDiag = 0.5 * sqrt(aspect * aspect + 1.0);
+      vec2 q = dir * (theta / thetaMax) * halfDiag;
+      vec2 s = vec2(0.5 + q.x / aspect, 0.5 + q.y);
+      if (s.x < 0.0 || s.x > 1.0 || s.y < 0.0 || s.y > 1.0) { outColor = vec4(0.0, 0.0, 0.0, 1.0); return; }
+      outColor = vec4(texture(map, s).rgb, 1.0);
+    }`));
+  g.linkProgram(prog);
+  if (!g.getProgramParameter(prog, g.LINK_STATUS)) throw new Error(g.getProgramInfoLog(prog));
+  g.useProgram(prog);
+  const buf = g.createBuffer();
+  g.bindBuffer(g.ARRAY_BUFFER, buf);
+  g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), g.STATIC_DRAW);
+  const loc = g.getAttribLocation(prog, 'p');
+  g.enableVertexAttribArray(loc);
+  g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
+  const tex = g.createTexture();
+  g.bindTexture(g.TEXTURE_2D, tex);
+  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, bmp);
+  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+  g.uniform1i(g.getUniformLocation(prog, 'map'), 0);
+  g.uniform1f(g.getUniformLocation(prog, 'thetaMax'), 95 * Math.PI / 180);
+  g.uniform1f(g.getUniformLocation(prog, 'aspect'), bmp.width / bmp.height);
+  g.uniform1f(g.getUniformLocation(prog, 'azSpan'), azSpan);
+  g.uniform1f(g.getUniformLocation(prog, 'elUp'), elUp);
+  g.uniform1f(g.getUniformLocation(prog, 'elLow'), elLow);
+  g.viewport(0, 0, W, H);
+  g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+  return canvas;
+}
+
+
 
 
 
