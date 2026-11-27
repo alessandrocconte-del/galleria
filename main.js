@@ -6,7 +6,7 @@ const logBox = document.createElement('pre');
 logBox.style.cssText = 'position:fixed;top:0;left:0;color:#0f0;font-size:14px;z-index:10;margin:0';
 document.body.appendChild(logBox);
 function log(msg) { logBox.textContent += msg + '\n'; };
-log('main.js caricato - versione 7');
+log('main.js caricato - versione 8');
 
 let photoFiles = [];
 let currentIndex = 0;
@@ -198,11 +198,7 @@ function animate(time, frame) {
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       const c = new OffscreenCanvas(6144, 3427);
       const g2 = c.getContext('2d');
-      g2.fillStyle = '#c0392b';
-      g2.fillRect(0, 0, 6144, 3427);
-      g2.fillStyle = '#ffffff';
-      g2.font = '600px sans-serif';
-      g2.fillText('TEST', 1700, 1900);
+      g2.drawImage(photoBitmap, 0, 0);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 6144, 3427, gl.RGBA, gl.UNSIGNED_BYTE, c);
       log('texture ' + sub.colorTextureWidth + 'x' + sub.colorTextureHeight + ' errore GL ' + gl.getError());
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
