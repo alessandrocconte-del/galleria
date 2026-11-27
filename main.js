@@ -10,6 +10,7 @@ log('main.js caricato - versione 10');
 
 let photoFiles = [];
 let currentIndex = 0;
+const EQ_W = 8192, EQ_H = 4570;
 
 const picker = document.createElement('input');
 picker.type = 'file';
@@ -164,7 +165,7 @@ async function buildEquirectLayer() {
   const deg = Math.PI / 180;
   photoLayer = glBinding.createEquirectLayer({
     space: refSpace,
-    viewPixelWidth: 6144, viewPixelHeight: 3427,
+    viewPixelWidth: EQ_W, viewPixelHeight: EQ_H,
     isStatic: true, layout: 'mono',
     radius: 0,
     centralHorizontalAngle: 190 * deg,
@@ -263,8 +264,8 @@ function animate(time, frame) {
       gl.bindTexture(gl.TEXTURE_2D, sub.colorTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       const deg = Math.PI / 180;
-      const c = fisheyeToEquirect(photoBitmap, 6144, 3427, 190 * deg, 53 * deg, -53 * deg);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 6144, 3427, gl.RGBA, gl.UNSIGNED_BYTE, c);
+      const c = fisheyeToEquirect(photoBitmap, EQ_W, EQ_H, 190 * deg, 53 * deg, -53 * deg);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, EQ_W, EQ_H, gl.RGBA, gl.UNSIGNED_BYTE, c);
       log('texture ' + sub.colorTextureWidth + 'x' + sub.colorTextureHeight + ' errore GL ' + gl.getError());
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       log('foto disegnata');
