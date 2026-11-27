@@ -6,7 +6,7 @@ const logBox = document.createElement('pre');
 logBox.style.cssText = 'position:fixed;top:0;left:0;color:#0f0;font-size:14px;z-index:10;margin:0';
 document.body.appendChild(logBox);
 function log(msg) { logBox.textContent += msg + '\n'; };
-log('main.js caricato - versione 9');
+log('main.js caricato - versione 10');
 
 let photoFiles = [];
 let currentIndex = 0;
@@ -167,9 +167,9 @@ async function buildEquirectLayer() {
     viewPixelWidth: 6144, viewPixelHeight: 3427,
     isStatic: true, layout: 'mono',
     radius: 0,
-    centralHorizontalAngle: 2 * Math.PI,
-    upperVerticalAngle: Math.PI / 2,
-    lowerVerticalAngle: -Math.PI / 2,
+    centralHorizontalAngle: 190 * deg,
+    upperVerticalAngle: 53 * deg,
+    lowerVerticalAngle: -53 * deg,
     transform: new XRRigidTransform({ x: 0, y: 1.6, z: 0 })
   });
   const others = Array.from(session.renderState.layers).filter(l => l !== old);
@@ -262,9 +262,8 @@ function animate(time, frame) {
       const sub = renderer.xr.getBinding().getSubImage(photoLayer, frame);
       gl.bindTexture(gl.TEXTURE_2D, sub.colorTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      const c = new OffscreenCanvas(6144, 3427);
-      const g2 = c.getContext('2d');
-      g2.drawImage(photoBitmap, 0, 0);
+      const deg = Math.PI / 180;
+      const c = fisheyeToEquirect(photoBitmap, 6144, 3427, 190 * deg, 53 * deg, -53 * deg);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 6144, 3427, gl.RGBA, gl.UNSIGNED_BYTE, c);
       log('texture ' + sub.colorTextureWidth + 'x' + sub.colorTextureHeight + ' errore GL ' + gl.getError());
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
